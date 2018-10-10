@@ -156,10 +156,12 @@
    #+ATTR_REVEAL: :frag (roll-in)
    - Gives spatial significance to the words
    - Map lower dimensional data to a higher dimension
-   #+REVEAL_HTML: <img width="400" height="400" src="https://www.tensorflow.org/images/tsne.png">
+   #+REVEAL: split
+   #+REVEAL_HTML: <img width="750" height="750" src="https://www.tensorflow.org/images/tsne.png">
    #+BEGIN_NOTES
-   vocab_inp_size - the total number of unique words in our dataset
-   max_length_inp - the max number of words in a sentence from our dataset
+   - System and computer are close
+   - Data and information are close
+   - English and French are close
    #+END_NOTES
    #+REVEAL: split
    #+BEGIN_SRC python
@@ -171,8 +173,67 @@
    vocab inp size - the total number of unique words in our dataset
    max length inp - the max number of words in a sentence from our dataset
    #+END_NOTES
-** Pre-net
+** "Pre-net"
+   "Helps convergence and improves generalization."
+   #+BEGIN_SRC python
+     class EncoderPrenet(keras.Model):
+       def __init__(self):
+         super(EncoderPrenet, self).__init__()
+         self.dense_1 = keras.layers.Dense(256, activation=tf.nn.relu)
+         self.dense_2 = keras.layers.Dense(128, activation=tf.nn.relu)
+         self.dropout = tf.keras.layers.Dropout(0.5)
+
+       def call(self, x):
+         x = self.dense_1(x)
+         x = self.dropout(x)
+         x = self.dense_2(x)
+         x = self.dropout(x)
+         return x
+   #+END_SRC
+   #+BEGIN_NOTES
+   Dropout randomly drop data given a dropout rate. In this case %50. This can
+   help generalize because it learns to work without information.
+   
+   I think that the convergence benefits come with the non-Linear (ReLU) to help
+   normalize the data in the model.
+   #+END_NOTES
 ** CBHG
+   Convolutional Banks, Highway Network, Bidirectional GRU
+   "Powerful module for extracting representations from sequences"
+   [[file:cbhg.png]]
+   #+BEGIN_NOTES
+   Lots of new stuff, stay with me.
+   #+END_NOTES
+*** Convolutional Neural Networks - CNN
+    #+ATTR_REVEAL: :frag (roll-in)
+    - Trains on smaller parts
+    - Applies filters
+    - Typically Paired with a pooling layer
+    #+BEGIN_NOTES
+    Dense Networks struggle to focus on details
+    Conv Nets are a way to focus on details under different lights
+    It focuses on details by stepping through the data frame-by-frame
+    It gets different lights by applying different filters on the data
+    #+END_NOTES
+      
+*** Convolutional Neural Networks - CNN (Example)
+    https://ujwlkarn.files.wordpress.com/2016/08/giphy.gif
+    #+BEGIN_NOTES
+    The box traversing the image is stepping through the data frame-by-frame
+    The images that it generated on the left is the filtered data
+    #+END_NOTES
+*** Max-Pooling
+    #+ATTR_REVEAL: :frag (roll-in)
+    - Down-samples data
+    - Increases speed of training model
+*** Max-Pooling (Example)
+    https://computersciencewiki.org/images/8/8a/MaxpoolSample2.png 
+*** Batch Normalization
+    "Batch normalization is used for all convolutional layers"
+    
+*** Residual Connection
+*** Highway Layers
+*** Bidirectional RNN
 ** Attention
 ** Pre-net
 ** Attention RNN
