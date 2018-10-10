@@ -1,0 +1,185 @@
+#+TITLE: Voice Synthesis with TensorFlow
+#+DATE: <2018-09-17 Mon>
+#+AUTHOR: Colton Kopsa
+#+EMAIL: coljamkop@gmail.com
+
+#+OPTIONS: reveal_center:t reveal_progress:t reveal_history:nil reveal_control:t
+#+OPTIONS: reveal_rolling_links:t reveal_keyboard:t reveal_overview:t num:nil
+#+OPTIONS: reveal_width:1200 reveal_height:800
+#+OPTIONS: toc:1
+#+REVEAL_ROOT: file:///Users/t_prime/dev/reveal.js/
+#+REVEAL_THEME: moon
+#+REVEAL_HLEVEL: 1
+#+REVEAL_PLUGINS: (markdown notes)
+
+* Notes
+  1. How would I continue this project given more time?
+  2. Lessons Learned? Summarizing the knowledge gained?
+  3. How have I added to this knowledge base?
+  4. What has already been done?
+  5. How well did I accomplish my goal?
+
+* About Me
+  Colton Kopsa
+  
+  Clearwater Analytics
+  
+  BYU-I
+
+* Voice Synthesis
+** Concatenation Based Synthesis 
+   #+ATTR_REVEAL: :frag (roll-in)
+   - Database built from speech-phrase pairs
+   - Speech -> unique sounds
+   - Phrases -> unique symbols
+   - Words -> unique symbols -> unique sounds
+   #+BEGIN_NOTES
+   This has been drastically simplified.
+   Unique sounds (phonemes, diphones, etc)
+   Unique symbols are typically accompanied by metadata:
+   - Preceding and following phonemes
+   - Position of segment in syllable
+   - Position of syllable in word & phrase
+   - Position of word in phrase
+   - Stress/accent/length features of current/preceding/following syllables
+   - Distance from stressed/accented syllable
+   - POS of current/preceding/following word
+   - Length of current/preceding/following phrase
+   - End tone of phrase
+   - Length of utterance measured in syllables/words/phrases
+
+   The list of unique sounds are stitched together
+   #+END_NOTES
+
+** Concatenation Based Synthesis (Example)
+   #+REVEAL_HTML: <audio controls="controls"> <source src="concat-sample.wav" type="audio/wav"> Your browser does not support the <code>audio</code> element. </audio>
+
+** Statistical Parametric Synthesis
+   #+ATTR_REVEAL: :frag (roll-in)
+   - Uses Hidden Markov Models
+   - Each generates different parts of the final waveform
+   #+BEGIN_NOTES
+   Similar to Concatenation
+   Database is replaced with a trained model
+   #+END_NOTES
+    
+** Statistical Parametric Synthesis (Example)
+   #+REVEAL_HTML: <audio controls="controls"> <source src="sp-sample.wav" type="audio/wav"> Your browser does not support the <code>audio</code> element. </audio>
+
+** Deep Learning Based Synthesis
+   #+ATTR_REVEAL: :frag (roll-in)
+   - Use the magic of machine learning to make all of your problems easy.
+
+** Deep Learning Based Synthesis (Example)
+   #+REVEAL_HTML: <audio controls="controls"> <source src="fake-sample.wav" type="audio/wav"> Your browser does not support the <code>audio</code> element. </audio>
+
+* Deep Learning
+** Machine Learning (Supervised Learning)
+   - Classical Programming vs Machine Learning
+     - Classical Programming: Data + Rules => Answers
+     - Machine Learning: Data + Answers => Rules
+   - There are many different models for machine learning, but we are going to focus on neural networks.
+** Neural Networks
+   #+REVEAL_HTML: <iframe width="1200" height="600" src="https://www.youtube.com/embed/rEDzUT3ymw4" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+** How does it learn?
+   1. Data is fed through a neural network 
+   2. A loss is computed between the actual targets and what the neural network
+      predicted.
+   3. An optimizer uses the loss to nudge the weights of the neural network in
+      the right direction.
+   4. The neural net's accuracy improves.
+** Tying it Back To Voice Synthesis 
+   - What we have:
+     - Text (Data)
+     - Audio (Answers)
+   - What we want:
+     - A way to convert text to audio (Rules)
+** Deep Learning
+   - ImageNet
+     - 1000 categories
+     - 1.4 million images
+     - 2011 - Classical Approach - 74.3%
+     - 2012 - Deep Learning - 83.6%
+** ImageNet Results
+   https://www.researchgate.net/profile/Kien_Nguyen26/publication/321896881/figure/fig1/AS:573085821489153@1513645715549/The-evolution-of-the-winning-entries-on-the-ImageNet-Large-Scale-Visual-Recognition.png
+** Why is deep learning better?
+   - Removes the need for feature engineering.
+   - The layers train as one giant model.
+* Tacotron - Deep Learning for Voice Synthesis
+  [[https://arxiv.org/pdf/1703.10135.pdf][Tacotron Paper]] 
+  - Data Pre-processing
+  - Embedding
+  - Convolutional Neural Networks
+  - Recurrent Neural Networks
+  - Sequence-to-Sequence with Attention
+** Data Pre-processing
+   - Text -> Ids
+   - WAV -> Spectrograms
+   https://upload.wikimedia.org/wikipedia/commons/c/c5/Spectrogram-19thC.png
+** Embedding
+   - Ids -> Dense Tensor
+   - The tensor can be thought of as a point in a n-dimensional space, where
+     similar words (in the context of the model) are moved closer together.
+     
+   #+REVEAL_HTML: <img width="400" height="400" src="https://www.tensorflow.org/images/tsne.png">
+** Convolutional Neural Networks
+   - Dense Networks struggle to focus on details
+   - Trains on smaller parts
+   - Applies filters
+   - Typically Paired with a pooling layer
+   https://ujwlkarn.files.wordpress.com/2016/08/giphy.gif
+** Recurrent Neural Networks
+   - Learns sequences and ordering
+   - Gives the effect of memory by passing it's output along
+** Sequence-2-Sequence with Attention
+   #+REVEAL_HTML: <img src="https://www.tensorflow.org/images/seq2seq/attention_mechanism.jpg" width="500" alt="attention mechanism">
+
+* Tacotron - Deep Learning for Voice Synthesis
+  [[file:tacotron-architecture.png]] 
+** Inputs
+   Unique Numerical Representation of Words
+   #+BEGIN_SRC python
+     def convertWordToIndex:
+         # Example code goes here
+   #+END_SRC
+
+** Outputs:
+   Log-Mel Spectrogram
+   #+BEGIN_SRC python
+   #+END_SRC
+   #+REVEAL: split
+   Linear Spectrograms
+   #+BEGIN_SRC python
+   #+END_SRC
+
+** Character Embeddings
+   #+ATTR_REVEAL: :frag (roll-in)
+   - Gives spatial significance to the words
+   - Map lower dimensional data to a higher dimension
+   #+REVEAL_HTML: <img width="400" height="400" src="https://www.tensorflow.org/images/tsne.png">
+   #+BEGIN_NOTES
+   vocab_inp_size - the total number of unique words in our dataset
+   max_length_inp - the max number of words in a sentence from our dataset
+   #+END_NOTES
+   #+REVEAL: split
+   #+BEGIN_SRC python
+     embedding = keras.layers.Embedding(input_dim=vocab_inp_size,
+                                        output_dim=256,
+                                        input_length=max_length_inp)
+   #+END_SRC
+   #+BEGIN_NOTES
+   vocab inp size - the total number of unique words in our dataset
+   max length inp - the max number of words in a sentence from our dataset
+   #+END_NOTES
+** Pre-net
+** CBHG
+** Attention
+** Pre-net
+** Attention RNN
+** Decoder RNN
+** CBHG
+** Linear Scale Spectrogram
+** Griffin-Lim Reconstruction
+   
+* Tacotron
+  [[file:tacotron-architecture.png]] 
