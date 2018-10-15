@@ -7,7 +7,7 @@
 #+OPTIONS: reveal_rolling_links:t reveal_keyboard:t reveal_overview:t num:nil
 #+OPTIONS: reveal_width:1200 reveal_height:800
 #+OPTIONS: toc:1
-#+REVEAL_ROOT: file:///Users/t_prime/dev/reveal.js/
+#+REVEAL_ROOT: file:///home/colton/dev/reveal.js/
 #+REVEAL_THEME: moon
 #+REVEAL_HLEVEL: 1
 #+REVEAL_PLUGINS: (markdown notes)
@@ -101,39 +101,11 @@
      - 2011 - Classical Approach - 74.3%
      - 2012 - Deep Learning - 83.6%
 ** ImageNet Results
-   https://www.researchgate.net/profile/Kien_Nguyen26/publication/321896881/figure/fig1/AS:573085821489153@1513645715549/The-evolution-of-the-winning-entries-on-the-ImageNet-Large-Scale-Visual-Recognition.png
+   [[file:ImageNet%20Results.png]] 
+   
 ** Why is deep learning better?
    - Removes the need for feature engineering.
    - The layers train as one giant model.
-* Tacotron - Deep Learning for Voice Synthesis
-  [[https://arxiv.org/pdf/1703.10135.pdf][Tacotron Paper]] 
-  - Data Pre-processing
-  - Embedding
-  - Convolutional Neural Networks
-  - Recurrent Neural Networks
-  - Sequence-to-Sequence with Attention
-** Data Pre-processing
-   - Text -> Ids
-   - WAV -> Spectrograms
-   https://upload.wikimedia.org/wikipedia/commons/c/c5/Spectrogram-19thC.png
-** Embedding
-   - Ids -> Dense Tensor
-   - The tensor can be thought of as a point in a n-dimensional space, where
-     similar words (in the context of the model) are moved closer together.
-     
-   #+REVEAL_HTML: <img width="400" height="400" src="https://www.tensorflow.org/images/tsne.png">
-** Convolutional Neural Networks
-   - Dense Networks struggle to focus on details
-   - Trains on smaller parts
-   - Applies filters
-   - Typically Paired with a pooling layer
-   https://ujwlkarn.files.wordpress.com/2016/08/giphy.gif
-** Recurrent Neural Networks
-   - Learns sequences and ordering
-   - Gives the effect of memory by passing it's output along
-** Sequence-2-Sequence with Attention
-   #+REVEAL_HTML: <img src="https://www.tensorflow.org/images/seq2seq/attention_mechanism.jpg" width="500" alt="attention mechanism">
-
 * Tacotron - Deep Learning for Voice Synthesis
   [[file:tacotron-architecture.png]] 
 ** Inputs
@@ -142,7 +114,6 @@
      def convertWordToIndex:
          # Example code goes here
    #+END_SRC
-
 ** Outputs:
    Log-Mel Spectrogram
    #+BEGIN_SRC python
@@ -222,18 +193,136 @@
     The box traversing the image is stepping through the data frame-by-frame
     The images that it generated on the left is the filtered data
     #+END_NOTES
+*** Convolutional Neural Networks - CNN (Code)
+    #+BEGIN_SRC python
+      class CBHG(keras.Model):
+        def __init__(self, K=16):
+          super(CBHG, self).__init__()
+          self.conv_banks = [BatchNormConv1D(filters=128,
+                                             kernel_size=k,
+                                             strides=1,
+                                             activation=tf.nn.relu) for k in range(1, K+1)]
+
+        def call(self, inputs):
+          x = inputs
+          x = keras.layers.concatenate([conv_bank(x) for conv_bank in self.conv_banks])
+          return x
+    #+END_SRC
+    #+BEGIN_NOTES
+    With the Conv Bank we are trying to extract out all of the details of the
+    sentence from different views. So, in effect, we are looking at the sentence
+    as single words, then word pairs, then triplets, and up from there.
+
+    Notice in the banks we use not just a Conv1D, but a BatchNormConv1D. What's
+    that?
+    #+END_NOTES
+*** Batch Normalization
+    "Batch normalization is used for all convolutional layers"
+
+    #+BEGIN_SRC python
+      class BatchNormConv1D(keras.Model):
+        def __init__(self, filters, kernel_size, strides, activation):
+          super(BatchNormConv1D, self).__init__()
+          self.conv1D = keras.layers.Conv1D(filters = filters,
+                                            kernel_size = kernel_size,
+                                            strides = strides,
+                                            activation=activation,
+                                            padding="same")
+          self.bn = keras.layers.BatchNormalization()
+
+        def call(self, x):
+          x = self.conv1D(x)
+          x = self.bn(x)
+          return x
+    #+END_SRC
+
+    #+BEGIN_NOTES
+    As you add more and more layers to your model, it becomes possible for your
+    values to explode or vanish. In order to help prevent this from happening,
+    batch normalization is introduced throughout your model to help keep your
+    data easy to work with.
+
+    The typical way to do this is by subtracting the average and dividing by the
+    standard deviation.
+    #+END_NOTES
+    
 *** Max-Pooling
     #+ATTR_REVEAL: :frag (roll-in)
     - Down-samples data
     - Increases speed of training model
 *** Max-Pooling (Example)
     https://computersciencewiki.org/images/8/8a/MaxpoolSample2.png 
-*** Batch Normalization
-    "Batch normalization is used for all convolutional layers"
-    
+*** Max-Pooling (Code)
+    #+BEGIN_SRC python
+      class CBHG(keras.Model):
+        def __init__(self, K=16, projections=[128, 128]):
+          super(CBHG, self).__init__()
+          self.conv_banks = [BatchNormConv1D(filters=128,
+                                             kernel_size=k,
+                                             strides=1,
+                                             activation=tf.nn.relu) for k in range(1, K+1)]
+          self.max_pool_1D = keras.layers.MaxPool1D(strides = 1,      # NEW
+                                                    pool_size = 2,    # NEW
+                                                    padding = "same") # NEW
+
+        def call(self, inputs):
+          x = inputs
+          x = keras.layers.concatenate([conv_bank(x) for conv_bank in self.conv_banks])
+          x = self.max_pool_1D(x)                                     # NEW
+          return x
+    #+END_SRC
 *** Residual Connection
+    Deeper networks are harder to train
+
+    Data becomes saturated
+    
+    #+BEGIN_NOTES
+    As our neural network gets deeper and deeper, the model begins to become
+    saturated and it's ability to learn degrades. So, similar to batch
+    normalization, we need a way to refresh our data as it goes deeper into our
+    model. Residual connections do this by holding onto the original input,
+    running it through some neural networks, and then adding the original input
+    to the resulting output.
+
+    The resulting output can be of any shape or size, so we need to use a
+    projection to bring it back to the shape of the original input.
+    #+END_NOTES
+*** Residual Connection (Code)
+   #+BEGIN_SRC python
+     class CBHG(keras.Model):
+       def __init__(self, K=16, projections=[128, 128]):
+         super(CBHG, self).__init__()
+         self.conv_banks = [BatchNormConv1D(filters=128,
+                                        kernel_size=k,
+                                        strides=1,
+                                        activation=tf.nn.relu) for k in range(1, K+1)]
+         self.max_pool_1D = keras.layers.MaxPool1D(strides = 1,
+                                                   pool_size = 2,
+                                                   padding = "same")
+         self.conv1d_projections = [                       # NEW
+           BatchNormConv1D(128, 3, 1, tf.nn.relu),         # NEW
+           BatchNormConv1D(128, 3, 1, "linear")            # NEW
+         ]                                                 # NEW
+
+       def call(self, inputs):
+         x = inputs
+         x = keras.layers.concatenate([conv_bank(x) for conv_bank in self.conv_banks])
+         x = self.max_pool_1D(x)
+         for conv1d_projection in self.conv1d_projections: # NEW 
+           x = conv1d_projection(x)                        # NEW
+         # Residual Connection                             # NEW
+         x = keras.layers.add([x, inputs])                 # NEW
+         return x
+   #+END_SRC 
 *** Highway Layers
+    "The convolution outputs are fed into a multi-layer highway network to
+    extract high-level features"
+
+    Similar to an RNN
 *** Bidirectional RNN
+   - Learns sequences and ordering (of both directions)
+   - Gives the effect of memory by passing it's output along
+    
 ** Attention
 ** Pre-net
 ** Attention RNN
@@ -244,3 +333,41 @@
    
 * Tacotron
   [[file:tacotron-architecture.png]] 
+
+
+* Questions
+  - Does the conv net actual train on each of the small pieces?
+  - How does it do alignment?
+    - Alignment is part of the attention process. Over time the attention is
+      able to determine which characters make the different sounds, and then, I
+      believe, the RNN sorts out the actual sequence of how those sounds are
+      ordered.
+
+* Tacotron - Deep Learning for Voice Synthesis
+  [[https://arxiv.org/pdf/1703.10135.pdf][Tacotron Paper]] 
+  - Data Pre-processing
+  - Embedding
+  - Convolutional Neural Networks
+  - Recurrent Neural Networks
+  - Sequence-to-Sequence with Attention
+** Data Pre-processing
+   - Text -> Ids
+   - WAV -> Spectrograms
+   https://upload.wikimedia.org/wikipedia/commons/c/c5/Spectrogram-19thC.png
+** Embedding
+   - Ids -> Dense Tensor
+   - The tensor can be thought of as a point in a n-dimensional space, where
+     similar words (in the context of the model) are moved closer together.
+     
+   #+REVEAL_HTML: <img width="400" height="400" src="https://www.tensorflow.org/images/tsne.png">
+** Convolutional Neural Networks
+   - Dense Networks struggle to focus on details
+   - Trains on smaller parts
+   - Applies filters
+   - Typically Paired with a pooling layer
+   https://ujwlkarn.files.wordpress.com/2016/08/giphy.gif
+** Recurrent Neural Networks
+   - Learns sequences and ordering
+   - Gives the effect of memory by passing it's output along
+** Sequence-2-Sequence with Attention
+   #+REVEAL_HTML: <img src="https://www.tensorflow.org/images/seq2seq/attention_mechanism.jpg" width="500" alt="attention mechanism">
