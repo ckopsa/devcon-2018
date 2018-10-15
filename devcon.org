@@ -233,6 +233,7 @@
     
 *** Residual Connection
 *** Highway Layers
+    Similiar to Residual Connection, but instead of always adding the original with the residual, we learn how much of either should pass through.
 *** Bidirectional RNN
 ** Attention
 ** Pre-net
