@@ -315,10 +315,8 @@
          return x
    #+END_SRC 
 *** Highway Layers
-    "The convolution outputs are fed into a multi-layer highway network to
-    extract high-level features"
-
-    Similar to an RNN
+    Similar to Residual Connection, but instead of always adding the original
+    with the residual, we learn how much of either should pass through.
 *** Bidirectional RNN
    - Learns sequences and ordering (of both directions)
    - Gives the effect of memory by passing it's output along
