@@ -255,7 +255,11 @@
     Notice in the banks we use not just a Conv1D, but a BatchNormConv1D. What's
     that?
     #+END_NOTES
-*** Vanishing Gradient
+*** Vanishing/Exploding Gradient
+    
+    #+BEGIN_NOTES
+    
+    #+END_NOTES
 *** Batch Normalization
     "Batch normalization is used for all convolutional layers"
 
@@ -362,18 +366,26 @@
    - Gives the effect of memory by passing it's output along
     
 ** Attention
-   A lense over the context vector
+   A lens over the context vector
 
    Learns where to focus
    #+BEGIN_NOTES
-   Acts as a lense over the context vector to draw attention to important data
+   Acts as a lens over the context vector to draw attention to important data
    #+END_NOTES
-** Pre-net
+** Attention (Example)
+   [[file:context-vector.png]]  
+** "Pre-net"
+   Same as pre-net in encoder
 ** Attention RNN
+   Combine attention and log-mel spectrograms to learn 
 ** Decoder RNN
+   Outputs log-mel spectrograms
 ** CBHG
-** Linear Scale Spectrogram
+   Acts as a post processing network
+   
+   Outputs Linear-scale spectrograms
 ** Griffin-Lim Reconstruction
+   Converts linear spectrograms to waveforms
    
 * Tacotron
   [[file:tacotron-architecture.png]] 
