@@ -12,41 +12,48 @@
 #+REVEAL_HLEVEL: 1
 #+REVEAL_PLUGINS: (markdown notes)
 
-* Notes
-  1. How would I continue this project given more time?
-  2. Lessons Learned? Summarizing the knowledge gained?
-  3. How have I added to this knowledge base?
-  4. What has already been done?
-  5. How well did I accomplish my goal?
-
 * About Me
   Colton Kopsa
   
   Clearwater Analytics
   
   BYU-I
+  #+BEGIN_NOTES
+  Software Developer
+
+  Novice in Deep Learning/Machine Learning
+
+  Spent a good amount of time learning about this subject
+  
+  I may not be able to answer all questions
+
+  Feel free to correct me
+  #+END_NOTES
 
 * Voice Synthesis
+  - Concatenation Based Synthesis
+  - Statistical Parametric Synthesis
+  - Deep Learning Based Synthesis
 ** Concatenation Based Synthesis 
    #+ATTR_REVEAL: :frag (roll-in)
-   - Database built from speech-phrase pairs
    - Speech -> unique sounds
    - Phrases -> unique symbols
    - Words -> unique symbols -> unique sounds
    #+BEGIN_NOTES
-   This has been drastically simplified.
-   Unique sounds (phonemes, diphones, etc)
-   Unique symbols are typically accompanied by metadata:
-   - Preceding and following phonemes
-   - Position of segment in syllable
-   - Position of syllable in word & phrase
-   - Position of word in phrase
-   - Stress/accent/length features of current/preceding/following syllables
-   - Distance from stressed/accented syllable
-   - POS of current/preceding/following word
-   - Length of current/preceding/following phrase
-   - End tone of phrase
-   - Length of utterance measured in syllables/words/phrases
+   - This has been drastically simplified.
+   - Dataset built from audio-sentence(phrase) pairs
+   - Unique sounds (phonemes, diphones, etc) that are a part of our speech
+   - Unique symbols are typically accompanied by metadata:
+     - Preceding and following phonemes
+     - Position of segment in syllable
+     - Position of syllable in word & phrase
+     - Position of word in phrase
+     - Stress/accent/length features of current/preceding/following syllables
+     - Distance from stressed/accented syllable
+     - POS of current/preceding/following word
+     - Length of current/preceding/following phrase
+     - End tone of phrase
+     - Length of utterance measured in syllables/words/phrases
 
    The list of unique sounds are stitched together
    #+END_NOTES
@@ -68,64 +75,94 @@
 
 ** Deep Learning Based Synthesis
    #+ATTR_REVEAL: :frag (roll-in)
-   - Use the magic of machine learning to make all of your problems easy.
+   - Machine Learning Magic
 
 ** Deep Learning Based Synthesis (Example)
-   #+REVEAL_HTML: <audio controls="controls"> <source src="fake-sample.wav" type="audio/wav"> Your browser does not support the <code>audio</code> element. </audio>
+   #+REVEAL_HTML: <audio controls="controls"> <source src="deep-sample.wav" type="audio/wav"> Your browser does not support the <code>audio</code> element. </audio>
 
-* Deep Learning
+** Questions?
+* What is Deep Learning?
+  Machine Learning -> Neural Networks -> Deep Learning
 ** Machine Learning (Supervised Learning)
    - Classical Programming vs Machine Learning
      - Classical Programming: Data + Rules => Answers
      - Machine Learning: Data + Answers => Rules
-   - There are many different models for machine learning, but we are going to focus on neural networks.
 ** Neural Networks
    #+REVEAL_HTML: <iframe width="1200" height="600" src="https://www.youtube.com/embed/rEDzUT3ymw4" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
 ** How does it learn?
-   1. Data is fed through a neural network 
-   2. A loss is computed between the actual targets and what the neural network
-      predicted.
-   3. An optimizer uses the loss to nudge the weights of the neural network in
-      the right direction.
-   4. The neural net's accuracy improves.
-** Tying it Back To Voice Synthesis 
+   1. Data -> NN -> Prediction
+   2. Loss = Prediction - Truth
+   3. Optimizer uses loss to nudge weights in the right direction.
+   4. Accuracy improves.
+** Deep Learning
+   Neural Network with many hidden layers
+** ImageNet
+   #+ATTR_REVEAL: :frag (roll-in)
+     - 1.4 million images
+     - 1000 categories
+     - 2011 - Classical Approach - 74.3%
+     - 2012 - Deep Learning - 83.6%
+     #+BEGIN_NOTES
+     - ImageNet was a competition that popularized deep learning
+     - AlexNet blew the previous competition out of the water
+     - Deep Learning has ruled the competition since
+     #+END_NOTES
+
+** ImageNet Results
+   [[file:ImageNet%20Results.png]] 
+   #+BEGIN_NOTES
+   - 2010 and 2011 used shallow methods
+   - 2012 is when AlexNet won with 8 layers
+   - 2013 was similar to AlexNet but with improved training
+   - 2014 moves to 22 layers with a jump of 5%
+   - 2015 jumps 3% with 152 layers
+   #+END_NOTES
+   
+** Why is deep learning better?
+   #+ATTR_REVEAL: :frag (roll-in)
+   - More layers = More capability to memorize
+   - No Feature Engineering
+   - Train as one model
+   #+BEGIN_NOTES
+   - As trainable weight increase it's ability to memorize the data it's
+     training on improves. The more layers the better.
+   - Feature engineering is used with other machine learning methods
+     - A models ability to infer is greatly influenced by the data it trains on
+     - Including irrelevant data can cause the models ability to infer to
+       degrade
+     - The person training the model has to deliberately choose which features
+       to include/discard
+     - Neural networks learn which features to stress/ignore while it adjusts
+       its weights
+   #+END_NOTES
+
+** Tying it Back To Voice Synthesis
    - What we have:
      - Text (Data)
      - Audio (Answers)
    - What we want:
      - A way to convert text to audio (Rules)
-** Deep Learning
-   - ImageNet
-     - 1000 categories
-     - 1.4 million images
-     - 2011 - Classical Approach - 74.3%
-     - 2012 - Deep Learning - 83.6%
-** ImageNet Results
-   [[file:ImageNet%20Results.png]] 
-   
-** Why is deep learning better?
-   - Removes the need for feature engineering.
-   - The layers train as one giant model.
+   #+BEGIN_NOTES
+   Other voice synthesis processes usually accompany the text data with
+   metadata, this model will operate without metadata.
+   #+END_NOTES
+** Questions?
 * Tacotron - Deep Learning for Voice Synthesis
   [[file:tacotron-architecture.png]] 
 ** Inputs
-   Unique Numerical Representation of Words
-   #+BEGIN_SRC python
-     def convertWordToIndex:
-         # Example code goes here
-   #+END_SRC
+   Unique Id Representation of Characters
+
+   'a' -> 1, 'b' -> 2
 ** Outputs:
-   Log-Mel Spectrogram
-   #+BEGIN_SRC python
-   #+END_SRC
-   #+REVEAL: split
+   Log-Mel Spectrograms
+   
    Linear Spectrograms
-   #+BEGIN_SRC python
-   #+END_SRC
+
+   https://upload.wikimedia.org/wikipedia/commons/c/c5/Spectrogram-19thC.png
 
 ** Character Embeddings
    #+ATTR_REVEAL: :frag (roll-in)
-   - Gives spatial significance to the words
+   - Gives spatial significance to the characters
    - Map lower dimensional data to a higher dimension
    #+REVEAL: split
    #+REVEAL_HTML: <img width="750" height="750" src="https://www.tensorflow.org/images/tsne.png">
@@ -141,8 +178,8 @@
                                         input_length=max_length_inp)
    #+END_SRC
    #+BEGIN_NOTES
-   vocab inp size - the total number of unique words in our dataset
-   max length inp - the max number of words in a sentence from our dataset
+   vocab inp size - the total number of unique characters in our dataset
+   max length inp - the max number of characters in a sentence from our dataset
    #+END_NOTES
 ** "Pre-net"
    "Helps convergence and improves generalization."
@@ -181,10 +218,10 @@
     - Applies filters
     - Typically Paired with a pooling layer
     #+BEGIN_NOTES
-    Dense Networks struggle to focus on details
-    Conv Nets are a way to focus on details under different lights
-    It focuses on details by stepping through the data frame-by-frame
-    It gets different lights by applying different filters on the data
+    - Dense Networks struggle to focus on details
+    - Conv Nets are a way to focus on details under different lights
+    - It focuses on details by stepping through the data frame-by-frame
+    - It gets different lights by applying different filters on the data
     #+END_NOTES
       
 *** Convolutional Neural Networks - CNN (Example)
@@ -211,11 +248,14 @@
     #+BEGIN_NOTES
     With the Conv Bank we are trying to extract out all of the details of the
     sentence from different views. So, in effect, we are looking at the sentence
-    as single words, then word pairs, then triplets, and up from there.
+    as single characters, then character pairs, then triplets, and up from
+    there. Sometimes, this type of data is provided as metadata to each of the
+    characters, but we can build it directly into our model.
 
     Notice in the banks we use not just a Conv1D, but a BatchNormConv1D. What's
     that?
     #+END_NOTES
+*** Vanishing Gradient
 *** Batch Normalization
     "Batch normalization is used for all convolutional layers"
 
@@ -322,6 +362,12 @@
    - Gives the effect of memory by passing it's output along
     
 ** Attention
+   A lense over the context vector
+
+   Learns where to focus
+   #+BEGIN_NOTES
+   Acts as a lense over the context vector to draw attention to important data
+   #+END_NOTES
 ** Pre-net
 ** Attention RNN
 ** Decoder RNN
@@ -355,7 +401,7 @@
 ** Embedding
    - Ids -> Dense Tensor
    - The tensor can be thought of as a point in a n-dimensional space, where
-     similar words (in the context of the model) are moved closer together.
+     similar characters (in the context of the model) are moved closer together.
      
    #+REVEAL_HTML: <img width="400" height="400" src="https://www.tensorflow.org/images/tsne.png">
 ** Convolutional Neural Networks
@@ -369,3 +415,13 @@
    - Gives the effect of memory by passing it's output along
 ** Sequence-2-Sequence with Attention
    #+REVEAL_HTML: <img src="https://www.tensorflow.org/images/seq2seq/attention_mechanism.jpg" width="500" alt="attention mechanism">
+* Notes
+  1. How would I continue this project given more time?
+  2. Lessons Learned? Summarizing the knowledge gained?
+  3. How have I added to this knowledge base?
+  4. What has already been done?
+  5. How well did I accomplish my goal?
+  6. 
+
+
+What is convergence?
