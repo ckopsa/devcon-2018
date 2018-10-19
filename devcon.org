@@ -1,5 +1,4 @@
 #+TITLE: Voice Synthesis with TensorFlow
-#+DATE: <2018-09-17 Mon>
 #+AUTHOR: Colton Kopsa
 #+EMAIL: coljamkop@gmail.com
 
@@ -98,8 +97,8 @@
    Neural Network with many hidden layers
 ** ImageNet
    #+ATTR_REVEAL: :frag (roll-in)
-     - 1.4 million images
-     - 1000 categories
+     - 14 million images
+     - 20,000+ categories
      - 2011 - Classical Approach - 74.3%
      - 2012 - Deep Learning - 83.6%
      #+BEGIN_NOTES
@@ -199,14 +198,16 @@
          return x
    #+END_SRC
    #+BEGIN_NOTES
+   Dense (or fully connected) layers receive output from all of the nodes in the
+   previous layer
+
    Dropout randomly drop data given a dropout rate. In this case %50. This can
    help generalize because it learns to work without information.
    
-   I think that the convergence benefits come with the non-Linear (ReLU) to help
-   normalize the data in the model.
+   The drop from 256 nodes to 128 is to provide a bottleneck.
    #+END_NOTES
 ** CBHG
-   Convolutional Banks, Highway Network, Bidirectional GRU
+   Convolutional Bank, Highway Network, Bidirectional GRU
    "Powerful module for extracting representations from sequences"
    [[file:cbhg.png]]
    #+BEGIN_NOTES
@@ -216,7 +217,6 @@
     #+ATTR_REVEAL: :frag (roll-in)
     - Trains on smaller parts
     - Applies filters
-    - Typically Paired with a pooling layer
     #+BEGIN_NOTES
     - Dense Networks struggle to focus on details
     - Conv Nets are a way to focus on details under different lights
@@ -235,14 +235,14 @@
       class CBHG(keras.Model):
         def __init__(self, K=16):
           super(CBHG, self).__init__()
-          self.conv_banks = [BatchNormConv1D(filters=128,
+          self.conv_bank = [BatchNormConv1D(filters=128,
                                              kernel_size=k,
                                              strides=1,
                                              activation=tf.nn.relu) for k in range(1, K+1)]
 
         def call(self, inputs):
           x = inputs
-          x = keras.layers.concatenate([conv_bank(x) for conv_bank in self.conv_banks])
+          x = keras.layers.concatenate([conv_layer(x) for conv_layer in self.conv_bank])
           return x
     #+END_SRC
     #+BEGIN_NOTES
@@ -301,7 +301,7 @@
       class CBHG(keras.Model):
         def __init__(self, K=16, projections=[128, 128]):
           super(CBHG, self).__init__()
-          self.conv_banks = [BatchNormConv1D(filters=128,
+          self.conv_bank = [BatchNormConv1D(filters=128,
                                              kernel_size=k,
                                              strides=1,
                                              activation=tf.nn.relu) for k in range(1, K+1)]
@@ -311,14 +311,14 @@
 
         def call(self, inputs):
           x = inputs
-          x = keras.layers.concatenate([conv_bank(x) for conv_bank in self.conv_banks])
+          x = keras.layers.concatenate([conv_layer(x) for conv_layer in self.conv_bank])
           x = self.max_pool_1D(x)                                     # NEW
           return x
     #+END_SRC
 *** Residual Connection
-    Deeper networks are harder to train
-
-    Data becomes saturated
+    #+ATTR_REVEAL: :frag (roll-in)
+    - Deeper networks are harder to train
+    - Data becomes saturated
     
     #+BEGIN_NOTES
     As our neural network gets deeper and deeper, the model begins to become
@@ -336,7 +336,7 @@
      class CBHG(keras.Model):
        def __init__(self, K=16, projections=[128, 128]):
          super(CBHG, self).__init__()
-         self.conv_banks = [BatchNormConv1D(filters=128,
+         self.conv_bank = [BatchNormConv1D(filters=128,
                                         kernel_size=k,
                                         strides=1,
                                         activation=tf.nn.relu) for k in range(1, K+1)]
@@ -350,7 +350,7 @@
 
        def call(self, inputs):
          x = inputs
-         x = keras.layers.concatenate([conv_bank(x) for conv_bank in self.conv_banks])
+         x = keras.layers.concatenate([conv_layer(x) for conv_layer in self.conv_bank])
          x = self.max_pool_1D(x)
          for conv1d_projection in self.conv1d_projections: # NEW 
            x = conv1d_projection(x)                        # NEW
@@ -359,16 +359,23 @@
          return x
    #+END_SRC 
 *** Highway Layers
-    Similar to Residual Connection, but instead of always adding the original
-    with the residual, we learn how much of either should pass through.
+    #+ATTR_REVEAL: :frag (roll-in)
+    - Similar to Residual Connection
+    - Learn how much of the original/residual to pass on
 *** Bidirectional RNN
-   - Learns sequences and ordering (of both directions)
-   - Gives the effect of memory by passing it's output along
+    #+ATTR_REVEAL: :frag (roll-in)
+    - Learns sequences and ordering (bidirectional = both directions)
+    - Gives the effect of memory by passing it's output along
+*** Bidirectional RNN (Example)
+   | RNN:     | T | h | e |   | d | o | ? |
+   | Not RNN: |   |   |   |   |   | o | ? |
     
+** Context Vector (Simplified)
+   [[file:context-vector.png]]  
 ** Attention
-   A lens over the context vector
-
-   Learns where to focus
+   #+ATTR_REVEAL: :frag (roll-in)
+   - A lens over the context vector
+   - Learns where to focus
    #+BEGIN_NOTES
    Acts as a lens over the context vector to draw attention to important data
    #+END_NOTES
@@ -377,7 +384,9 @@
 ** "Pre-net"
    Same as pre-net in encoder
 ** Attention RNN
-   Combine attention and log-mel spectrograms to learn 
+   #+ATTR_REVEAL: :frag (roll-in)
+   - Combine attention and log-mel spectrograms
+   - Pass attention and output of attention RNN to Decoder RNN
 ** Decoder RNN
    Outputs log-mel spectrograms
 ** CBHG
@@ -386,54 +395,20 @@
    Outputs Linear-scale spectrograms
 ** Griffin-Lim Reconstruction
    Converts linear spectrograms to waveforms
-   
+** Generating Audio
+   #+ATTR_REVEAL: :frag (roll-in)
+   - Feed character sequence to encoder and get context vector
+   - Feed decoder <GO> frame and context vector
+   - Stitch output from decoder
+** Next Steps
+   - For me:
+     - Finish Code
+     - Create my own dataset
+   - For you:
+     - Find a interesting paper
+     - Learn a Deep Learning Framework
+     - Reproduce Results
+** Questions?
 * Tacotron
   [[file:tacotron-architecture.png]] 
 
-
-* Questions
-  - Does the conv net actual train on each of the small pieces?
-  - How does it do alignment?
-    - Alignment is part of the attention process. Over time the attention is
-      able to determine which characters make the different sounds, and then, I
-      believe, the RNN sorts out the actual sequence of how those sounds are
-      ordered.
-
-* Tacotron - Deep Learning for Voice Synthesis
-  [[https://arxiv.org/pdf/1703.10135.pdf][Tacotron Paper]] 
-  - Data Pre-processing
-  - Embedding
-  - Convolutional Neural Networks
-  - Recurrent Neural Networks
-  - Sequence-to-Sequence with Attention
-** Data Pre-processing
-   - Text -> Ids
-   - WAV -> Spectrograms
-   https://upload.wikimedia.org/wikipedia/commons/c/c5/Spectrogram-19thC.png
-** Embedding
-   - Ids -> Dense Tensor
-   - The tensor can be thought of as a point in a n-dimensional space, where
-     similar characters (in the context of the model) are moved closer together.
-     
-   #+REVEAL_HTML: <img width="400" height="400" src="https://www.tensorflow.org/images/tsne.png">
-** Convolutional Neural Networks
-   - Dense Networks struggle to focus on details
-   - Trains on smaller parts
-   - Applies filters
-   - Typically Paired with a pooling layer
-   https://ujwlkarn.files.wordpress.com/2016/08/giphy.gif
-** Recurrent Neural Networks
-   - Learns sequences and ordering
-   - Gives the effect of memory by passing it's output along
-** Sequence-2-Sequence with Attention
-   #+REVEAL_HTML: <img src="https://www.tensorflow.org/images/seq2seq/attention_mechanism.jpg" width="500" alt="attention mechanism">
-* Notes
-  1. How would I continue this project given more time?
-  2. Lessons Learned? Summarizing the knowledge gained?
-  3. How have I added to this knowledge base?
-  4. What has already been done?
-  5. How well did I accomplish my goal?
-  6. 
-
-
-What is convergence?
